@@ -1,18 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:store/models/shoe.dart';
+import 'package:store/services/cart_service.dart';
+import 'package:provider/provider.dart';
 
 class ShoeTile extends StatelessWidget {
   final Shoe shoe;
   final VoidCallback? onTap;
-  final VoidCallback? onAddToCart;
-  final VoidCallback? onToggleFavorite;
 
   const ShoeTile({
     super.key,
     required this.shoe,
     this.onTap,
-    this.onAddToCart,
-    this.onToggleFavorite,
   });
 
   @override
@@ -20,100 +18,136 @@ class ShoeTile extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        margin: const EdgeInsets.only(bottom: 16),
+        width: 280,
+        margin: const EdgeInsets.only(right: 20),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(25),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.08),
-              blurRadius: 15,
-              offset: const Offset(0, 5),
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 20,
+              offset: const Offset(0, 10),
             ),
           ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Image section
+            // Image section with gradient background
             Expanded(
               flex: 3,
               child: Container(
                 decoration: BoxDecoration(
-                  color: Colors.grey[50],
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Colors.grey[100]!,
+                      Colors.grey[50]!,
+                    ],
+                  ),
                   borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(20),
-                    topRight: Radius.circular(20),
+                    topLeft: Radius.circular(25),
+                    topRight: Radius.circular(25),
                   ),
                 ),
                 child: Stack(
                   children: [
+                    // Main shoe image
                     Center(
                       child: Padding(
-                        padding: const EdgeInsets.all(20),
+                        padding: const EdgeInsets.all(30),
                         child: Hero(
                           tag: 'shoe_${shoe.name}',
-                          child: Image.asset(
-                            shoe.imagePath,
-                            height: 80,
-                            fit: BoxFit.contain,
-                            errorBuilder: (context, error, stackTrace) {
-                              return Container(
-                                height: 80,
-                                width: 80,
-                                decoration: BoxDecoration(
-                                  color: Colors.grey[200],
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Icon(
-                                  Icons.image_not_supported,
-                                  color: Colors.grey[400],
-                                  size: 40,
+                          child: Transform.rotate(
+                            angle: -0.2,
+                            child: Image.asset(
+                              shoe.imagePath,
+                              height: 140,
+                              fit: BoxFit.contain,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Container(
+                                  height: 140,
+                                  width: 140,
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey[200],
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  child: Icon(
+                                    Icons.image_not_supported,
+                                    color: Colors.grey[400],
+                                    size: 60,
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    
+                    // Wishlist button
+                    Positioned(
+                      top: 15,
+                      right: 15,
+                      child: Consumer<CartService>(
+                        builder: (context, cartService, child) {
+                          final isWishlisted = cartService.isInWishlist(shoe.name);
+                          return GestureDetector(
+                            onTap: () {
+                              cartService.toggleWishlist(shoe.name);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    isWishlisted 
+                                        ? 'Removed from wishlist' 
+                                        : 'Added to wishlist',
+                                  ),
+                                  duration: const Duration(seconds: 1),
+                                  backgroundColor: isWishlisted ? Colors.red : Colors.green,
+                                  behavior: SnackBarBehavior.floating,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
                                 ),
                               );
                             },
-                          ),
-                        ),
-                      ),
-                    ),
-                    // Favorite button
-                    Positioned(
-                      top: 12,
-                      right: 12,
-                      child: GestureDetector(
-                        onTap: onToggleFavorite,
-                        child: Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(12),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.1),
-                                blurRadius: 8,
-                                offset: const Offset(0, 2),
+                            child: Container(
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(15),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.1),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 5),
+                                  ),
+                                ],
                               ),
-                            ],
-                          ),
-                          child: Icon(
-                            shoe.isFavorite 
-                                ? Icons.favorite_rounded 
-                                : Icons.favorite_border_rounded,
-                            size: 18,
-                            color: shoe.isFavorite ? Colors.red : Colors.grey[600],
-                          ),
-                        ),
+                              child: Icon(
+                                isWishlisted 
+                                    ? Icons.favorite_rounded 
+                                    : Icons.favorite_border_rounded,
+                                size: 20,
+                                color: isWishlisted ? Colors.red : Colors.grey[600],
+                              ),
+                            ),
+                          );
+                        },
                       ),
                     ),
+                    
                     // Rating badge
                     Positioned(
-                      top: 12,
-                      left: 12,
+                      top: 15,
+                      left: 15,
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                         decoration: BoxDecoration(
                           color: Colors.black.withOpacity(0.8),
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(15),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
@@ -121,7 +155,7 @@ class ShoeTile extends StatelessWidget {
                             const Icon(
                               Icons.star_rounded,
                               color: Colors.amber,
-                              size: 14,
+                              size: 16,
                             ),
                             const SizedBox(width: 4),
                             Text(
@@ -129,10 +163,36 @@ class ShoeTile extends StatelessWidget {
                               style: const TextStyle(
                                 color: Colors.white,
                                 fontSize: 12,
-                                fontWeight: FontWeight.w600,
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
                           ],
+                        ),
+                      ),
+                    ),
+                    
+                    // Decorative circles
+                    Positioned(
+                      bottom: 20,
+                      right: 20,
+                      child: Container(
+                        width: 60,
+                        height: 60,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.3),
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      bottom: 40,
+                      right: 40,
+                      child: Container(
+                        width: 30,
+                        height: 30,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.2),
+                          shape: BoxShape.circle,
                         ),
                       ),
                     ),
@@ -145,50 +205,50 @@ class ShoeTile extends StatelessWidget {
             Expanded(
               flex: 2,
               child: Padding(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Category
+                    // Category badge
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
                         color: Colors.grey[100],
-                        borderRadius: BorderRadius.circular(6),
+                        borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
                         shoe.category,
                         style: TextStyle(
-                          fontSize: 10,
+                          fontSize: 11,
                           color: Colors.grey[600],
-                          fontWeight: FontWeight.w500,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 10),
                     
                     // Product name
                     Text(
                       shoe.name,
                       style: const TextStyle(
-                        fontSize: 16,
+                        fontSize: 18,
                         fontWeight: FontWeight.bold,
                         color: Colors.black87,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 6),
                     
                     // Description
                     Text(
                       shoe.description,
                       style: TextStyle(
-                        fontSize: 12,
+                        fontSize: 13,
                         color: Colors.grey[600],
-                        height: 1.3,
+                        height: 1.4,
                       ),
-                      maxLines: 1,
+                      maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
                     const Spacer(),
@@ -204,7 +264,7 @@ class ShoeTile extends StatelessWidget {
                             Text(
                               shoe.price,
                               style: const TextStyle(
-                                fontSize: 18,
+                                fontSize: 22,
                                 fontWeight: FontWeight.bold,
                                 color: Colors.black,
                               ),
@@ -212,33 +272,58 @@ class ShoeTile extends StatelessWidget {
                             Text(
                               '${shoe.reviewCount} reviews',
                               style: TextStyle(
-                                fontSize: 10,
+                                fontSize: 11,
                                 color: Colors.grey[500],
                               ),
                             ),
                           ],
                         ),
-                        GestureDetector(
-                          onTap: onAddToCart,
-                          child: Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: Colors.black,
-                              borderRadius: BorderRadius.circular(12),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.3),
-                                  blurRadius: 8,
-                                  offset: const Offset(0, 4),
+                        Consumer<CartService>(
+                          builder: (context, cartService, child) {
+                            return GestureDetector(
+                              onTap: () {
+                                cartService.addToCart(shoe);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Row(
+                                      children: [
+                                        const Icon(Icons.check_circle, color: Colors.white),
+                                        const SizedBox(width: 8),
+                                        Expanded(
+                                          child: Text('${shoe.name} added to cart!'),
+                                        ),
+                                      ],
+                                    ),
+                                    backgroundColor: Colors.green,
+                                    duration: const Duration(seconds: 2),
+                                    behavior: SnackBarBehavior.floating,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                  ),
+                                );
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.all(15),
+                                decoration: BoxDecoration(
+                                  color: Colors.black,
+                                  borderRadius: BorderRadius.circular(15),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.3),
+                                      blurRadius: 10,
+                                      offset: const Offset(0, 5),
+                                    ),
+                                  ],
                                 ),
-                              ],
-                            ),
-                            child: const Icon(
-                              Icons.add_rounded,
-                              color: Colors.white,
-                              size: 18,
-                            ),
-                          ),
+                                child: const Icon(
+                                  Icons.add_rounded,
+                                  color: Colors.white,
+                                  size: 20,
+                                ),
+                              ),
+                            );
+                          },
                         ),
                       ],
                     ),
