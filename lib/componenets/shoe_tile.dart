@@ -1,24 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:store/models/shoe.dart';
 import 'package:store/services/cart_service.dart';
-import 'package:provider/provider.dart';
 
 class ShoeTile extends StatelessWidget {
   final Shoe shoe;
   final VoidCallback? onTap;
 
-  const ShoeTile({
-    super.key,
-    required this.shoe,
-    this.onTap,
-  });
+  const ShoeTile({super.key, required this.shoe, this.onTap});
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 280,
+        width: 300,
+        height: 400,
         margin: const EdgeInsets.only(right: 20),
         decoration: BoxDecoration(
           color: Colors.white,
@@ -34,7 +31,6 @@ class ShoeTile extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Image section with gradient background
             Expanded(
               flex: 3,
               child: Container(
@@ -42,10 +38,7 @@ class ShoeTile extends StatelessWidget {
                   gradient: LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
-                    colors: [
-                      Colors.grey[100]!,
-                      Colors.grey[50]!,
-                    ],
+                    colors: [Colors.grey[100]!, Colors.grey[50]!],
                   ),
                   borderRadius: const BorderRadius.only(
                     topLeft: Radius.circular(25),
@@ -54,7 +47,6 @@ class ShoeTile extends StatelessWidget {
                 ),
                 child: Stack(
                   children: [
-                    // Main shoe image
                     Center(
                       child: Padding(
                         padding: const EdgeInsets.all(30),
@@ -62,50 +54,77 @@ class ShoeTile extends StatelessWidget {
                           tag: 'shoe_${shoe.name}',
                           child: Transform.rotate(
                             angle: -0.2,
-                            child: Image.asset(
-                              shoe.imagePath,
-                              height: 140,
-                              fit: BoxFit.contain,
-                              errorBuilder: (context, error, stackTrace) {
-                                return Container(
-                                  height: 140,
-                                  width: 140,
-                                  decoration: BoxDecoration(
-                                    color: Colors.grey[200],
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                  child: Icon(
-                                    Icons.image_not_supported,
-                                    color: Colors.grey[400],
-                                    size: 60,
-                                  ),
-                                );
-                              },
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(15),
+                              child: Image.asset(
+                                shoe.imagePath,
+                                height: 160,
+                                width: 200,
+                                fit: BoxFit.contain,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return Container(
+                                    height: 160,
+                                    width: 200,
+                                    decoration: BoxDecoration(
+                                      color: Colors.grey[200],
+                                      borderRadius: BorderRadius.circular(15),
+                                      border: Border.all(
+                                        color: Colors.grey[300]!,
+                                        width: 2,
+                                      ),
+                                    ),
+                                    child: Center(
+                                      child: Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Icon(
+                                            Icons.sports_basketball_rounded,
+                                            color: Colors.grey[400],
+                                            size: 50,
+                                          ),
+                                          const SizedBox(height: 8),
+                                          Text(
+                                            'Nike Shoe',
+                                            style: TextStyle(
+                                              color: Colors.grey[500],
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
                             ),
                           ),
                         ),
                       ),
                     ),
-                    
-                    // Wishlist button
                     Positioned(
                       top: 15,
                       right: 15,
                       child: Consumer<CartService>(
                         builder: (context, cartService, child) {
-                          final isWishlisted = cartService.isInWishlist(shoe.name);
+                          final isWishlisted =
+                              cartService.isInWishlist(shoe.name);
                           return GestureDetector(
                             onTap: () {
                               cartService.toggleWishlist(shoe.name);
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   content: Text(
-                                    isWishlisted 
-                                        ? 'Removed from wishlist' 
+                                    isWishlisted
+                                        ? 'Removed from wishlist'
                                         : 'Added to wishlist',
                                   ),
                                   duration: const Duration(seconds: 1),
-                                  backgroundColor: isWishlisted ? Colors.red : Colors.green,
+                                  backgroundColor: isWishlisted
+                                      ? Colors.red
+                                      : Colors.green,
                                   behavior: SnackBarBehavior.floating,
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(10),
@@ -127,24 +146,27 @@ class ShoeTile extends StatelessWidget {
                                 ],
                               ),
                               child: Icon(
-                                isWishlisted 
-                                    ? Icons.favorite_rounded 
+                                isWishlisted
+                                    ? Icons.favorite_rounded
                                     : Icons.favorite_border_rounded,
                                 size: 20,
-                                color: isWishlisted ? Colors.red : Colors.grey[600],
+                                color: isWishlisted
+                                    ? Colors.red
+                                    : Colors.grey[600],
                               ),
                             ),
                           );
                         },
                       ),
                     ),
-                    
-                    // Rating badge
                     Positioned(
                       top: 15,
                       left: 15,
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
                         decoration: BoxDecoration(
                           color: Colors.black.withOpacity(0.8),
                           borderRadius: BorderRadius.circular(15),
@@ -170,8 +192,6 @@ class ShoeTile extends StatelessWidget {
                         ),
                       ),
                     ),
-                    
-                    // Decorative circles
                     Positioned(
                       bottom: 20,
                       right: 20,
@@ -200,8 +220,6 @@ class ShoeTile extends StatelessWidget {
                 ),
               ),
             ),
-            
-            // Details section
             Expanded(
               flex: 2,
               child: Padding(
@@ -209,9 +227,11 @@ class ShoeTile extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Category badge
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.grey[100],
                         borderRadius: BorderRadius.circular(8),
@@ -226,8 +246,6 @@ class ShoeTile extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 10),
-                    
-                    // Product name
                     Text(
                       shoe.name,
                       style: const TextStyle(
@@ -239,8 +257,6 @@ class ShoeTile extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 6),
-                    
-                    // Description
                     Text(
                       shoe.description,
                       style: TextStyle(
@@ -252,8 +268,6 @@ class ShoeTile extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
                     const Spacer(),
-                    
-                    // Price and add button
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       crossAxisAlignment: CrossAxisAlignment.center,
@@ -287,10 +301,15 @@ class ShoeTile extends StatelessWidget {
                                   SnackBar(
                                     content: Row(
                                       children: [
-                                        const Icon(Icons.check_circle, color: Colors.white),
+                                        const Icon(
+                                          Icons.check_circle,
+                                          color: Colors.white,
+                                        ),
                                         const SizedBox(width: 8),
                                         Expanded(
-                                          child: Text('${shoe.name} added to cart!'),
+                                          child: Text(
+                                            '${shoe.name} added to cart!',
+                                          ),
                                         ),
                                       ],
                                     ),
